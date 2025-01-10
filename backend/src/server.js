@@ -4,9 +4,21 @@ const { sequelize, Chamado } = require('../models');
 
 const app = express();
 
-// Middleware para habilitar CORS
+// Configuração de CORS com múltiplas origens
+const allowedOrigins = [
+  'http://localhost:5173', // Origem do desenvolvimento local
+  'https://cerne-beta.vercel.app', // Origem da produção no Vercel
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173', // Permitir requisições do frontend
+  origin: function (origin, callback) {
+    // Permitir requisições sem origem (ex.: Postman) ou verificar se a origem é permitida
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origin not allowed by CORS'));
+    }
+  },
 }));
 
 // Middleware para processar o corpo das requisições
