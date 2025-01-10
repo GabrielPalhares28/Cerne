@@ -13,6 +13,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import Logo from "../assets/cerne-logo.png";
+import axios from "axios";
 
 interface Ticket {
   id: number;
@@ -23,22 +24,32 @@ interface Ticket {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [completedTickets, setCompletedTickets] = useState<Ticket[]>([]); // Adicionado estado para chamados concluídos
   const [selectedType, setSelectedType] = useState<string>("all");
 
-  // Carregar os tickets do localStorage ao montar o componente
   useEffect(() => {
-    const savedTicketsString = localStorage.getItem("chamados");
-    const savedTickets: Ticket[] = savedTicketsString
-      ? JSON.parse(savedTicketsString)
-      : [];
-    setTickets(savedTickets);
+    axios
+      .get("http://localhost:3000/chamados") // A URL da sua API backend
+      .then((response) => {
+        const formattedData = response.data.map((ticket: any) => ({
+          id: ticket.id,
+          descricao: ticket.descricao,
+          tipo: ticket.tipo,
+        }));
+        setTickets(formattedData);
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar os chamados:", error);
+      });
   }, []);
 
-  // Função para excluir um ticket
-  const handleDelete = (id: number) => {
-    const updatedTickets = tickets.filter((ticket) => ticket.id !== id);
-    setTickets(updatedTickets);
-    localStorage.setItem("chamados", JSON.stringify(updatedTickets));
+  // Função para mover um chamado para a lista de concluídos
+  const handleComplete = (id: number) => {
+    const completedTicket = tickets.find((ticket) => ticket.id === id); // Encontra o ticket
+    if (completedTicket) {
+      setCompletedTickets([...completedTickets, completedTicket]); // Adiciona à lista de concluídos
+      setTickets(tickets.filter((ticket) => ticket.id !== id)); // Remove da lista principal
+    }
   };
 
   // Contar chamados por tipo
@@ -77,12 +88,7 @@ const Dashboard: React.FC = () => {
         boxShadow={3}
       >
         <Box display="flex" alignItems="center" gap={2} mb={3}>
-          <Box
-            component="img"
-            src={Logo}
-            alt="Logo CERNE"
-            sx={{ width: 80 }}
-          />
+          <Box component="img" src={Logo} alt="Logo CERNE" sx={{ width: 80 }} />
           <Box>
             <Typography
               variant="h5"
@@ -107,13 +113,7 @@ const Dashboard: React.FC = () => {
         </Box>
 
         {/* Contador de chamados */}
-        <Box
-          mb={3}
-          p={2}
-          borderRadius={2}
-          bgcolor="#f0f4ff"
-          boxShadow={1}
-        >
+        <Box mb={3} p={2} borderRadius={2} bgcolor="#f0f4ff" boxShadow={1}>
           <Typography variant="h6" fontWeight="bold" color="#2F54EB">
             Resumo dos Chamados
           </Typography>
@@ -142,6 +142,7 @@ const Dashboard: React.FC = () => {
           </Select>
         </Box>
 
+        {/* Lista de chamados */}
         {filteredTickets.length > 0 ? (
           <List>
             {filteredTickets.map((ticket) => (
@@ -152,7 +153,7 @@ const Dashboard: React.FC = () => {
                   <IconButton
                     edge="end"
                     aria-label="delete"
-                    onClick={() => handleDelete(ticket.id)}
+                    onClick={() => handleComplete(ticket.id)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -176,6 +177,35 @@ const Dashboard: React.FC = () => {
             Nenhum chamado encontrado.
           </Typography>
         )}
+
+        {/* Lista de chamados concluídos */}
+        <Box mt={4}>
+          <Typography variant="h6" fontWeight="bold" color="#2F54EB">
+            Chamados Concluídos
+          </Typography>
+          {completedTickets.length > 0 ? (
+            <List>
+              {completedTickets.map((ticket) => (
+                <ListItem key={ticket.id} divider>
+                  <ListItemText
+                    primary={ticket.descricao}
+                    secondary={`Tipo: ${ticket.tipo}`}
+                    primaryTypographyProps={{
+                      style: { color: "#555", textDecoration: "line-through" },
+                    }}
+                    secondaryTypographyProps={{
+                      style: { color: "#888" },
+                    }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Typography color="textSecondary" align="center">
+              Nenhum chamado concluído.
+            </Typography>
+          )}
+        </Box>
 
         {/* Botão de novo chamado */}
         <Button
