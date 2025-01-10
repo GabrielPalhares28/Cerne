@@ -11,8 +11,8 @@ const Login: React.FC = () => {
 
   // Função para verificar as credenciais
   const handleLogin = () => {
-    const validEmail = "gabrielpalhares764@gmail.com";
-    const validPassword = "12345";
+    const validEmail = "Cerne";
+    const validPassword = "12345678";
 
     // Verificando se o e-mail e senha correspondem
     if (email === validEmail && password === validPassword) {
