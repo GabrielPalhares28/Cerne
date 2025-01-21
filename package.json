@@ -8,9 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node src/server.js",
-    "start:backend": "node src/server.js",
-    "start:frontend": "vite"
+    "start:backend": "node backend/src/server.js",
+    "start:frontend": "vite",
+    "start:all": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "start": "node backend/src/server.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -18,6 +19,8 @@
     "@mui/icons-material": "^6.3.1",
     "@mui/material": "^6.3.1",
     "axios": "^1.7.9",
+    "concurrently": "^8.2.0",
+    "express": "^4.18.2",
     "jsqr": "^1.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
